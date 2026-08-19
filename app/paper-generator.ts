@@ -1,4 +1,5 @@
 import type {ChoiceQuestion,Paper} from "./papers-v2";
+import {coverageFor} from "./unit-coverage";
 
 export type Scenario={
   title:string; person:string; setting:string; challenge:string; action:string;
@@ -134,14 +135,33 @@ function essay(plan:UnitPlan,s:Scenario){
 export function buildUnitPapers(plan:UnitPlan):Paper[]{
  return plan.scenarios.map((s,v)=>{
   const j=judgment(plan,s,v),r=reading(plan,s,v),m=matching(plan,s);
+  const inventory=coverageFor(plan.unit),source=v%2===0?"Text A":"Text B";
+  const sourceFacts=v%2===0?inventory.textAFacts:inventory.textBFacts;
+  const textFacts=sourceFacts.filter((_,i)=>i%2===Math.floor(v/2));
+  const vocabulary=inventory.vocabulary.filter((_,i)=>i%4===v);
+  const phrases=inventory.phrases.filter((_,i)=>i%4===v);
+  const sourceNote=`教材${source}内容回顾：${textFacts.join(" ")}`;
+  j.passage=`${sourceNote}\n\n${j.passage}`;
+  r.passage=`${sourceNote}\n\n${r.passage}`;
+  j.questions[0]=jq(1,`${textFacts[0]} (${source})`,0,`教材${source}明确包含这一内容。`);
+  j.questions[1]=jq(2,`${textFacts[1]} (${source})`,0,`教材${source}的相关段落支持这一判断。`);
   j.questions=j.questions.map(q=>({...q,prompt:`${q.prompt} — ${s.title}`}));
   r.questions=r.questions.map(q=>({...q,prompt:`${q.prompt} — ${s.title}`}));
   m.paragraphPrompts=m.paragraphPrompts.map((x,i)=>`${x} · Unit ${plan.unit}.${v+1}.${i+1}`);
   m.sentencePrompts=m.sentencePrompts.map((x,i)=>`${x} · ${s.title} ${i+1}`);
-  return {
+  const paper:Paper={
    id:v+1,unit:plan.unit,unitTitle:plan.title,title:`Unit ${plan.unit} 模拟卷${["一","二","三","四"][v]}`,
    level:["基础巩固","语境运用","综合提升","全真模拟"][v],
+   coverage:{source,vocabulary,phrases,textFacts},
    judgment:j,reading:r,matching:m,sentenceFill:sentenceFill(plan,s,v),wordFill:wordFill(plan,s,v),wordForm:wordForm(plan,s),essay:essay(plan,s)
   };
+  const lexical=[...vocabulary,...phrases];
+  paper.judgment.questions.forEach((q,i)=>{q.explanation=`${q.explanation} 教材词汇提示：${lexical[i%lexical.length]}。`});
+  paper.reading.questions.forEach((q,i)=>{q.explanation=`${q.explanation} 教材词汇提示：${lexical[(i+10)%lexical.length]}。`});
+  paper.matching.explanations=paper.matching.explanations.map((x,i)=>`${x} 教材词汇提示：${lexical[(i+15)%lexical.length]}。`);
+  paper.sentenceFill.explanations=paper.sentenceFill.explanations.map((x,i)=>`${x} 教材词汇提示：${lexical[(i+25)%lexical.length]}。`);
+  paper.wordFill.explanations=paper.wordFill.explanations.map((x,i)=>`${x} 教材词汇提示：${lexical[(i+30)%lexical.length]}。`);
+  paper.wordForm.explanations=paper.wordForm.explanations.map((x,i)=>`${x} 教材词汇提示：${lexical[(i+40)%lexical.length]}。`);
+  return paper;
  });
 }
