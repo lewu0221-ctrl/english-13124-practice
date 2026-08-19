@@ -1,5 +1,6 @@
 import {papers as unitOne} from "../app/papers-v2";
 import {generatedPapers,unitPlans} from "../app/unit-plans";
+import {unitCoverage} from "../app/unit-coverage";
 
 const errors:string[]=[];
 const assert=(ok:boolean,message:string)=>{if(!ok)errors.push(message)};
@@ -9,6 +10,26 @@ const all=[...unitOne.map(p=>({...p,unit:1})),...generatedPapers];
 assert(unitPlans.length===11,"Unit plan count must be 11");
 assert(generatedPapers.length===44,"Generated paper count must be 44");
 for(let unit=2;unit<=12;unit++) assert(generatedPapers.filter(p=>p.unit===unit).length===4,`Unit ${unit} must have four papers`);
+
+for(const inventory of unitCoverage){
+ const unitPapers=generatedPapers.filter(p=>p.unit===inventory.unit);
+ const coveredWords=unitPapers.flatMap(p=>p.coverage?.vocabulary??[]);
+ const coveredPhrases=unitPapers.flatMap(p=>p.coverage?.phrases??[]);
+ const coveredFacts=unitPapers.flatMap(p=>p.coverage?.textFacts??[]);
+ const expectedFacts=[...inventory.textAFacts,...inventory.textBFacts];
+ assert(new Set(coveredWords).size===coveredWords.length,`Unit ${inventory.unit}: vocabulary repeated between papers`);
+ assert(new Set(coveredPhrases).size===coveredPhrases.length,`Unit ${inventory.unit}: phrases repeated between papers`);
+ assert(new Set(coveredFacts).size===coveredFacts.length,`Unit ${inventory.unit}: text facts repeated between papers`);
+ assert(JSON.stringify([...coveredWords].sort())===JSON.stringify([...inventory.vocabulary].sort()),`Unit ${inventory.unit}: vocabulary coverage incomplete`);
+ assert(JSON.stringify([...coveredPhrases].sort())===JSON.stringify([...inventory.phrases].sort()),`Unit ${inventory.unit}: phrase coverage incomplete`);
+ assert(JSON.stringify([...coveredFacts].sort())===JSON.stringify(expectedFacts.sort()),`Unit ${inventory.unit}: Text A/B coverage incomplete`);
+ for(const paper of unitPapers){
+  const {coverage,...exam}=paper;
+  const examText=normalize(JSON.stringify(exam));
+  for(const term of [...(coverage?.vocabulary??[]),...(coverage?.phrases??[])]) assert(examText.includes(normalize(term)),`Unit ${inventory.unit} paper ${paper.id}: ${term} listed but absent from questions`);
+  for(const fact of coverage?.textFacts??[]) assert(examText.includes(normalize(fact)),`Unit ${inventory.unit} paper ${paper.id}: Text fact listed but absent from passages`);
+ }
+}
 
 for(const p of all){
  const label=`Unit ${p.unit} paper ${p.id}`;
