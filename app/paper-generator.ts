@@ -140,7 +140,8 @@ export function buildUnitPapers(plan:UnitPlan):Paper[]{
   const textFacts=sourceFacts.filter((_,i)=>i%2===Math.floor(v/2));
   const vocabulary=inventory.vocabulary.filter((_,i)=>i%4===v);
   const phrases=inventory.phrases.filter((_,i)=>i%4===v);
-  const sourceNote=`教材${source}内容回顾：${textFacts.join(" ")}`;
+  const exerciseFocus=[inventory.exerciseFocus[v]];
+  const sourceNote=`教材${source}内容回顾：${textFacts.join(" ")} 教材练习重点：${exerciseFocus[0]}。`;
   j.passage=`${sourceNote}\n\n${j.passage}`;
   r.passage=`${sourceNote}\n\n${r.passage}`;
   j.questions[0]=jq(1,`${textFacts[0]} (${source})`,0,`教材${source}明确包含这一内容。`);
@@ -152,7 +153,7 @@ export function buildUnitPapers(plan:UnitPlan):Paper[]{
   const paper:Paper={
    id:v+1,unit:plan.unit,unitTitle:plan.title,title:`Unit ${plan.unit} 模拟卷${["一","二","三","四"][v]}`,
    level:["基础巩固","语境运用","综合提升","全真模拟"][v],
-   coverage:{source,vocabulary,phrases,textFacts},
+   coverage:{source,vocabulary,phrases,textFacts,exerciseFocus},
    judgment:j,reading:r,matching:m,sentenceFill:sentenceFill(plan,s,v),wordFill:wordFill(plan,s,v),wordForm:wordForm(plan,s),essay:essay(plan,s)
   };
   const lexical=[...vocabulary,...phrases];

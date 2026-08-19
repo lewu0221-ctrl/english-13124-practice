@@ -16,18 +16,22 @@ for(const inventory of unitCoverage){
  const coveredWords=unitPapers.flatMap(p=>p.coverage?.vocabulary??[]);
  const coveredPhrases=unitPapers.flatMap(p=>p.coverage?.phrases??[]);
  const coveredFacts=unitPapers.flatMap(p=>p.coverage?.textFacts??[]);
+ const coveredExercises=unitPapers.flatMap(p=>p.coverage?.exerciseFocus??[]);
  const expectedFacts=[...inventory.textAFacts,...inventory.textBFacts];
  assert(new Set(coveredWords).size===coveredWords.length,`Unit ${inventory.unit}: vocabulary repeated between papers`);
  assert(new Set(coveredPhrases).size===coveredPhrases.length,`Unit ${inventory.unit}: phrases repeated between papers`);
  assert(new Set(coveredFacts).size===coveredFacts.length,`Unit ${inventory.unit}: text facts repeated between papers`);
+ assert(new Set(coveredExercises).size===coveredExercises.length,`Unit ${inventory.unit}: exercise focus repeated between papers`);
  assert(JSON.stringify([...coveredWords].sort())===JSON.stringify([...inventory.vocabulary].sort()),`Unit ${inventory.unit}: vocabulary coverage incomplete`);
  assert(JSON.stringify([...coveredPhrases].sort())===JSON.stringify([...inventory.phrases].sort()),`Unit ${inventory.unit}: phrase coverage incomplete`);
  assert(JSON.stringify([...coveredFacts].sort())===JSON.stringify(expectedFacts.sort()),`Unit ${inventory.unit}: Text A/B coverage incomplete`);
+ assert(JSON.stringify([...coveredExercises].sort())===JSON.stringify([...inventory.exerciseFocus].sort()),`Unit ${inventory.unit}: exercise coverage incomplete`);
  for(const paper of unitPapers){
   const {coverage,...exam}=paper;
   const examText=normalize(JSON.stringify(exam));
   for(const term of [...(coverage?.vocabulary??[]),...(coverage?.phrases??[])]) assert(examText.includes(normalize(term)),`Unit ${inventory.unit} paper ${paper.id}: ${term} listed but absent from questions`);
   for(const fact of coverage?.textFacts??[]) assert(examText.includes(normalize(fact)),`Unit ${inventory.unit} paper ${paper.id}: Text fact listed but absent from passages`);
+  for(const focus of coverage?.exerciseFocus??[]) assert(examText.includes(normalize(focus)),`Unit ${inventory.unit} paper ${paper.id}: exercise focus listed but absent from passages`);
  }
 }
 
