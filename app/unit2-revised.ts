@@ -7,8 +7,16 @@ const letters=(xs:string[])=>xs.map((x,i)=>`${String.fromCharCode(65+i)}. ${x}`)
 const explain=(n:number,prefix:string)=>Array.from({length:n},(_,i)=>`${prefix}第${i+1}空需结合前后句的指代、逻辑关系和语法结构判断。`);
 
 function matching(title:string,paragraphs:string[],headings:string[],answers:number[],sentences:string[],sentenceAnswers:number[]){
+ const extensions=[
+  `This opening step establishes the problem clearly, so later advice is based on observation instead of an unsupported first impression.`,
+  `The distinction matters because two situations that look similar on the surface may require very different judgments and responses.`,
+  `A limited and specific choice makes action possible; it also gives the reader something concrete to examine after the first attempt.`,
+  `Resources or lessons already present in the situation can easily be missed when attention remains fixed on disappointment, pride or blame.`,
+  `The final step connects the immediate result with a lasting principle, while leaving room to revise the method when new evidence appears.`
+ ];
+ const fullParagraphs=paragraphs.map((p,i)=>`${p} ${extensions[i]}`);
  return {
-  title,passage:paragraphs.map((p,i)=>`${i+1}. ${p}`).join("\n\n"),
+  title,passage:fullParagraphs.map((p,i)=>`${i+1}. ${p}`).join("\n\n"),
   paragraphPrompts:paragraphs.map((_,i)=>`${title} — Paragraph ${i+1}`),paragraphOptions:letters(headings),paragraphAnswers:answers,
   sentencePrompts:[`In “${title},” the first paragraph mainly asks readers to ____.`,`In “${title},” the second paragraph shows how people may ____.`,`In “${title},” the third paragraph stresses the need to ____.`,`In “${title},” the fourth paragraph recommends that we ____.`,`In “${title},” the final paragraph reminds us to ____.`],
   sentenceOptions:letters(sentences),sentenceAnswers,
@@ -17,11 +25,15 @@ function matching(title:string,paragraphs:string[],headings:string[],answers:num
 }
 
 function insertion(title:string,parts:string[],options:string[],answers:number[]){
- return {title,passageParts:parts,options:letters(options),answers,explanations:answers.map((a,i)=>`第${i+1}空选项“${options[a]}”承接前句并引出后句，逻辑和指代完整。`)};
+ const opening=`Unit 2 presents a path as a series of choices rather than a perfect condition given in advance. People first notice a flaw, assumption or obstacle; they then decide whether to remain with shame and blame or move toward understanding and responsible action. Such a decision is rarely made only once. A familiar weakness may look different after its effect on other people becomes visible, and an automatic judgment may need to be reconsidered after a stranger speaks. Honest attention supplies the evidence from which a better response can grow. The passage below develops this idea in a new context.\n\n`;
+ const closing=`\n\nThe sequence is important: observation comes before judgment, and reflection is followed by a practical response. The person does not have to deny the original problem or claim that every result is perfect. Instead, a limit is named accurately, available evidence is considered and the next useful action is chosen. In this way, the lesson grows from the details of the experience instead of being added as an empty slogan. It can then guide another decision without turning one story into a rule that ignores different circumstances.`;
+ const expanded=[`${opening}${parts[0]}`,...parts.slice(1,-1),`${parts.at(-1)??""}${closing}`];
+ return {title,passageParts:expanded,options:letters(options),answers,explanations:answers.map((a,i)=>`第${i+1}空选项“${options[a]}”承接前句并引出后句，逻辑和指代完整。`)};
 }
 
 function wordFill(title:string,parts:string[],options:string[],answers:number[],notes:string[]){
- return {title,passageParts:parts,options:letters(options),answers,explanations:notes};
+ const opening=`Everyday experiences often test values more effectively than abstract advice. A damaged object, a difficult task or a brief meeting with a stranger can reveal whether a person responds with shame, blame, prejudice or responsibility. First appearances provide only part of the evidence, so careful people pause, listen and examine the effect of their choices. They remain willing to admit an error without treating it as the whole story. The most useful lesson usually appears when attention turns from a quick first reaction to a constructive next step.\n\n`;
+ return {title,passageParts:[`${opening}${parts[0]}`,...parts.slice(1)],options:letters(options),answers,explanations:notes};
 }
 
 function wordForm(title:string,parts:string[],roots:string[],answers:string[]){

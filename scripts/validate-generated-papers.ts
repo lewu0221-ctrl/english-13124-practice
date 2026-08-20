@@ -5,6 +5,7 @@ import {unitCoverage} from "../app/unit-coverage";
 const errors:string[]=[];
 const assert=(ok:boolean,message:string)=>{if(!ok)errors.push(message)};
 const normalize=(s:string)=>s.toLowerCase().replace(/[^a-z0-9\u4e00-\u9fff]+/g," ").trim();
+const wordCount=(s:string)=>(s.match(/[A-Za-z]+(?:['’-][A-Za-z]+)*/g)??[]).length;
 const all=[...unitOne.map(p=>({...p,unit:1})),...generatedPapers];
 
 assert(unitPlans.length===11,"Unit plan count must be 11");
@@ -52,6 +53,13 @@ for(const p of all){
   assert(new Set(options.map(normalize)).size===options.length,`${label}: repeated options in ${section}`);
  }
  assert(10+10+10+10+15+15+30===100,`${label}: score total`);
+}
+
+for(const p of generatedPapers.filter(p=>p.unit===2)){
+ const label=`Unit 2 paper ${p.id}`;
+ assert(wordCount(p.matching.passage)>=190,`${label}: paragraph-matching passage shorter than 2024-paper target`);
+ assert(wordCount(p.sentenceFill.passageParts.join(" "))>=220,`${label}: sentence-insertion passage shorter than 2024-paper target`);
+ assert(wordCount(p.wordFill.passageParts.join(" "))>=130,`${label}: word-fill passage shorter than 2024-paper target`);
 }
 
 const uniqueBuckets:{name:string;items:Array<{label:string;text:string}>}[]=[
