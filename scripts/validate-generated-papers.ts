@@ -55,9 +55,9 @@ for(const p of all){
  assert(10+10+10+10+15+15+30===100,`${label}: score total`);
 }
 
-for(const p of generatedPapers.filter(p=>p.unit===2)){
- const label=`Unit 2 paper ${p.id}`;
- assert(wordCount(p.matching.passage)>=190,`${label}: paragraph-matching passage shorter than 2024-paper target`);
+for(const p of generatedPapers){
+ const label=`Unit ${p.unit} paper ${p.id}`;
+ assert(wordCount(p.matching.passage)>=200,`${label}: paragraph-matching passage shorter than 2024-paper target`);
  assert(wordCount(p.sentenceFill.passageParts.join(" "))>=220,`${label}: sentence-insertion passage shorter than 2024-paper target`);
  assert(wordCount(p.wordFill.passageParts.join(" "))>=130,`${label}: word-fill passage shorter than 2024-paper target`);
 }

@@ -7,13 +7,37 @@ const letters=(xs:string[])=>xs.map((x,i)=>`${String.fromCharCode(65+i)}. ${x}`)
 const explain=(n:number,prefix:string)=>Array.from({length:n},(_,i)=>`${prefix}第${i+1}空需结合前后句的指代、逻辑关系和语法结构判断。`);
 
 function matching(title:string,paragraphs:string[],headings:string[],answers:number[],sentences:string[],sentenceAnswers:number[]){
- const extensions=[
-  `This opening step establishes the problem clearly, so later advice is based on observation instead of an unsupported first impression.`,
-  `The distinction matters because two situations that look similar on the surface may require very different judgments and responses.`,
-  `A limited and specific choice makes action possible; it also gives the reader something concrete to examine after the first attempt.`,
-  `Resources or lessons already present in the situation can easily be missed when attention remains fixed on disappointment, pride or blame.`,
-  `The final step connects the immediate result with a lasting principle, while leaving room to revise the method when new evidence appears.`
- ];
+ const detailByTitle:Record<string,string[]>={
+  "Five Ways to Respond to an Imperfection":[
+   `The cracked pot named both the crack and the daily loss of water; this accuracy allowed the bearer to answer the pot's shame with facts rather than empty comfort.`,
+   `A cooking pot that may split over a fire cannot be treated like a stable bowl used as a planter, so safety must be examined before a second purpose is chosen.`,
+   `Along the path, the bearer had planted seeds only on the cracked pot's side, and two years of leaking water produced flowers for the master's table.`,
+   `Arun kept a record of firing temperatures and handling errors after repairing his bowl, which reduced later damage instead of making careless work acceptable.`,
+   `The flowers, the herb planter and the improved workshop record all became visible consequences that could not have been predicted by judging the flaw alone.`
+  ],
+  "Keeping Eyes and Heart Open":[
+   `Outside the Reagan Center, Morales heard a request and reacted to an extended hand before looking at the woman or discovering what help she wanted.`,
+   `Her destination—the post office—was a simple fact that his loose change could not address, and her correction exposed the distance between assumption and need.`,
+   `He reviewed what he knew: she was elderly and blind; he also identified what he had invented, namely that she must be a panhandler asking for money.`,
+   `Memories of arriving from Honduras, doing humble jobs and hearing a customer belittle a busboy made his own quick label impossible to dismiss.`,
+   `He gave directions, reflected on the incident and allowed the woman's words to reaffirm a core belief that comfortable success had allowed him to neglect.`
+  ],
+  "From Complaints to Constructive Action":[
+   `The merchants described the blocked road loudly, but their complaints did not reduce the danger or make the route usable for the next traveler.`,
+   `The peasant set down his load of vegetables and pushed from several positions, turning a public inconvenience into a task with a clear physical result.`,
+   `Only after the boulder moved could he see the purse and the king's note, evidence that had remained hidden from those who walked around the obstacle.`,
+   `His method required effort rather than special status; another obstacle might demand tools or cooperation, but it would still begin with responsibility.`,
+   `The gold was a reward in the story, while the wider benefit was a clear road and the lasting recognition that an obstacle may contain an opportunity.`
+  ],
+  "Humility in Everyday Decisions":[
+   `Rosa's new reply—“Thank you. I am glad I could help”—allowed gratitude to be received without turning helpful work into a claim of superiority.`,
+   `Morales's error shows why useful help begins with a question: an offered coin could not replace the directions the blind woman had actually requested.`,
+   `Because he had experienced unfair labeling as an immigrant and busboy, admitting his assumption restored rather than weakened his core value of humility.`,
+   `Accurate self-knowledge can include both a real contribution and its limits; making every accomplishment invisible is no more truthful than exaggerating it.`,
+   `Praise, comfort and professional success create new tests, so an open heart must be renewed through listening, memory and responsible correction.`
+  ]
+ };
+ const extensions=detailByTitle[title];
  const fullParagraphs=paragraphs.map((p,i)=>`${p} ${extensions[i]}`);
  return {
   title,passage:fullParagraphs.map((p,i)=>`${i+1}. ${p}`).join("\n\n"),
@@ -25,15 +49,53 @@ function matching(title:string,paragraphs:string[],headings:string[],answers:num
 }
 
 function insertion(title:string,parts:string[],options:string[],answers:number[]){
- const opening=`Unit 2 presents a path as a series of choices rather than a perfect condition given in advance. People first notice a flaw, assumption or obstacle; they then decide whether to remain with shame and blame or move toward understanding and responsible action. Such a decision is rarely made only once. A familiar weakness may look different after its effect on other people becomes visible, and an automatic judgment may need to be reconsidered after a stranger speaks. Honest attention supplies the evidence from which a better response can grow. The passage below develops this idea in a new context.\n\n`;
- const closing=`\n\nThe sequence is important: observation comes before judgment, and reflection is followed by a practical response. The person does not have to deny the original problem or claim that every result is perfect. Instead, a limit is named accurately, available evidence is considered and the next useful action is chosen. In this way, the lesson grows from the details of the experience instead of being added as an empty slogan. It can then guide another decision without turning one story into a rule that ignores different circumstances.`;
- const expanded=[`${opening}${parts[0]}`,...parts.slice(1,-1),`${parts.at(-1)??""}${closing}`];
+ const detailByTitle:Record<string,string[]>={
+  "A Path Watered by an Imperfect Pot":[
+   `For two years, the cracked pot returned from the stream only half full, while the perfect pot completed the journey with all its water. `,
+   `Its apology focused on the bearer's wasted effort and revealed that shame had narrowed its attention to a single measure of usefulness. `,
+   `Because he already knew the location of the crack, the bearer planted seeds on the exact side where the water would fall each day. `,
+   `The flowers on only one side of the path were evidence of planning, not a lucky decoration added after the pot complained. `,
+   `They were picked for the master's table, giving the leak a continuing purpose without changing the amount of water that reached the house. `,
+   `The story therefore keeps fact and compassion together: the pot remains cracked, yet its whole contribution is larger than the missing portion. `
+  ],
+  "From Assumption to Humility":[
+   `During a sightseeing trip in Washington, D.C., Morales noticed poverty around him before an elderly blind woman spoke near the Reagan Center. `,
+   `His hand moved toward the loose change in his pocket, and annoyance arrived before any question about what the woman meant. `,
+   `When she asked only for directions, the contradiction between her words and his action made the hidden prejudice immediately visible. `,
+   `The incident reopened memories of Honduras, immigration and jobs as a dishwasher, roofer, cashier, mechanic, delivery driver and busboy. `,
+   `Those jobs and the unfair remarks he had heard gave him personal evidence of the harm caused when a label replaces attention to a person. `,
+   `After guiding her to the post office, he treated the mistake as a priceless lesson that restored a principle he wanted to practise. `
+  ],
+  "Happiness Is Not Always Later":[
+   `After the first excitement of university faded, the student faced crowded weeks in which difficult courses, money worries and unfamiliar expectations arrived together. `,
+   `Instead of calling the whole experience a failure, the student listed the moments when pressure was highest and identified which tasks could actually be changed. `,
+   `A weekly plan divided reading, review and rest into portions small enough to complete, while office hours provided a place to test questions that remained unclear. `,
+   `The plan did not remove every disappointing grade, but it produced evidence about which study habits improved preparation and which merely consumed time. `,
+   `Friendships and campus activities were then chosen carefully so that support and belonging strengthened study instead of becoming another source of overload. `,
+   `The resulting path was practical because it used the present week as the place for action while keeping future goals visible. `
+  ],
+  "A Notice That People Can Use":[
+   `Students often decide whether to attend an activity after only a few seconds of reading, so missing information can defeat even a worthwhile event. `,
+   `Naming the English contest, volunteer visit or class meeting at the start allows readers to connect every later detail with one activity. `,
+   `A full date and hour also let participants compare the event with lessons, transport and other responsibilities before they register. `,
+   `The exact room or meeting point prevents a second search on arrival, especially when a campus has several halls or gates. `,
+   `Registration deadlines, materials and a contact person belong in the notice only when they help the reader prepare for that particular activity. `,
+   `Clear visual order finally brings activity, time and place together, making the notice a tool for action rather than a general announcement. A reader can then decide, prepare and arrive without needing a second explanation from the organizer. `
+  ]
+ };
+ const details=detailByTitle[title];
+ const expanded=parts.map((part,i)=>`${details[i]}${part}`);
  return {title,passageParts:expanded,options:letters(options),answers,explanations:answers.map((a,i)=>`第${i+1}空选项“${options[a]}”承接前句并引出后句，逻辑和指代完整。`)};
 }
 
 function wordFill(title:string,parts:string[],options:string[],answers:number[],notes:string[]){
- const opening=`Everyday experiences often test values more effectively than abstract advice. A damaged object, a difficult task or a brief meeting with a stranger can reveal whether a person responds with shame, blame, prejudice or responsibility. First appearances provide only part of the evidence, so careful people pause, listen and examine the effect of their choices. They remain willing to admit an error without treating it as the whole story. The most useful lesson usually appears when attention turns from a quick first reaction to a constructive next step.\n\n`;
- return {title,passageParts:[`${opening}${parts[0]}`,...parts.slice(1)],options:letters(options),answers,explanations:notes};
+ const detailByTitle:Record<string,string[]>={
+  "Every Obstacle Presents an Opportunity":[`The king did not announce a lesson to the travelers. He created a blocked roadway and watched how people with different positions responded. The merchants and courtiers had enough influence to complain, yet their words left the boulder exactly where it was. The peasant's vegetables made the task inconvenient, but they also made his decision observable: he first put down what he was carrying, worked on the shared problem and only later discovered the hidden reward.\n\n`],
+  "Vocabulary from A Priceless Lesson":[`The misunderstanding outside the Reagan Center developed within seconds. Morales heard a request, saw an extended hand and connected those two details with the homeless people he had recently noticed. The woman interrupted that story by asking for the post office. Her actual need forced him to review not only the coin in her hand but also the history that should have made him more careful about labels.\n\n`],
+  "Taking Notice of the Present":[`University disappointment often appears as a collection of concrete pressures rather than one dramatic failure. A learner may struggle with a course, feel separated from familiar friends and compare an ordinary week with an ideal picture of campus life. Improvement begins when these pressures are named separately. A timetable, a tutor or one honest conversation cannot repair everything, but each can reveal an available choice in the present.\n\n`],
+  "Choosing a Constructive Attitude":[`Constructive optimism does not rename pain as pleasure. It asks what the evidence permits a person to hope for and what action that hope requires. The water bearer used the known position of a crack; Morales used an embarrassing correction to recover a neglected value. In both cases, the difficulty remained part of the account, while attention created a response more responsible than shame, denial or a cheerful slogan.\n\n`]
+ };
+ return {title,passageParts:[`${detailByTitle[title][0]}${parts[0]}`,...parts.slice(1)],options:letters(options),answers,explanations:notes};
 }
 
 function wordForm(title:string,parts:string[],roots:string[],answers:string[]){

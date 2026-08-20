@@ -51,8 +51,19 @@ function reading(plan:UnitPlan,s:Scenario,v:number){
  ]};
 }
 
-function matching(plan:UnitPlan,s:Scenario){
- const passage=`① Define the real issue. In ${s.setting}, the visible difficulty was ${s.challenge}, but a useful response required people to examine its cause.\n② Choose a workable first step. ${cap(s.action)}. A limited action made participation possible and produced evidence for later decisions.\n③ Observe results honestly. ${cap(s.evidence)}. Records included setbacks as well as improvements, so the group did not confuse hope with proof.\n④ Adapt rather than copy. Participants kept the shared purpose but changed details to fit their own needs. This protected the project from becoming a rigid formula.\n⑤ Connect action with meaning. ${cap(s.insight)}. Reflection helped people understand why the effort deserved to continue.`;
+function matching(plan:UnitPlan,s:Scenario,v:number){
+ const inventory=coverageFor(plan.unit);
+ const facts=[...inventory.textAFacts,...inventory.textBFacts];
+ const fact=(offset:number)=>facts[(v*3+offset)%facts.length];
+ const passage=`① The work began by defining the real issue. In ${s.setting}, people could easily see that ${s.challenge}, yet naming the visible difficulty was not enough. They asked who was affected, when the difficulty appeared and which earlier choices had helped it continue. The discussion recalled a related point from the unit: ${fact(0)} This comparison turned a broad complaint into a question that could be investigated.
+
+② The group next chose a workable first step instead of waiting for ideal conditions. ${cap(s.action)}. The action was limited enough for people to try, but specific enough to create a result that could be checked. A second textbook detail helped them judge the choice: ${fact(1)} By connecting that detail with the situation in ${s.setting}, participants understood what their first action was intended to change.
+
+③ Observation continued after the first attempt. ${cap(s.evidence)}. The record included dates, reactions and setbacks as well as improvement, because one encouraging example could not prove that the difficulty had disappeared. Members compared the evidence with this unit idea: ${fact(2)} That comparison exposed weak assumptions and showed which part of the response deserved further support.
+
+④ The evidence did not lead everyone to copy a single formula. Some participants changed the timing, while others adjusted the division of work or the way information was shared. These local changes protected the common purpose rather than weakening it. The group also considered that ${fact(3)} The detail reminded them that responsible adaptation depends on circumstances, not on convenience alone.
+
+⑤ Finally, the group examined what the experience meant beyond one successful result. ${cap(s.outcome)}. More importantly, ${s.insight} The participants could now explain why the effort mattered, where its limits remained and how a later project might improve it. Their conclusion connected practical evidence with ${plan.title.toLowerCase()} and made “${plan.phrases[v%plan.phrases.length]}” a principle used in action rather than a phrase learned in isolation.`;
  const paragraphOptions=["A. Link practice to a larger purpose","B. Examine what is actually wrong","C. Modify the method for local needs","D. Begin with a manageable action","E. Judge progress with evidence","F. Wait for perfect conditions"];
  const sentenceOptions=[`A. understand ${s.challenge}`,`B. start without being overwhelmed`,`C. separate evidence from wishful thinking`,`D. preserve purpose while changing details`,`E. continue for a meaningful reason`,`F. avoid all responsibility`];
  const paragraphPrompts=Array.from({length:5},(_,i)=>`${s.title} — Paragraph ${i+1}`);
@@ -61,6 +72,9 @@ function matching(plan:UnitPlan,s:Scenario){
 }
 
 function sentenceFill(plan:UnitPlan,s:Scenario,v:number){
+ const inventory=coverageFor(plan.unit);
+ const facts=[...inventory.textAFacts,...inventory.textBFacts];
+ const fact=(offset:number)=>facts[(v*3+offset)%facts.length];
  const options=[
   `A. The first explanation, however, did not account for what people actually experienced.`,
   `B. ${cap(s.action)}.`,
@@ -70,12 +84,12 @@ function sentenceFill(plan:UnitPlan,s:Scenario,v:number){
   `F. They decided that no further observation would ever be necessary.`
  ];
  const passageParts=[
-  `When ${s.person} began to examine ${s.challenge}, several easy answers were offered. `,
-  ` A closer look showed that the situation involved habits, expectations and practical limits.\n\nThe next task was to turn discussion into action. `,
-  ` Because the step was concrete, people could describe what happened rather than argue only from opinion.\n\nEarly results were mixed. `,
-  ` The record made later adjustments more accurate and prevented one good day from being mistaken for permanent success.\n\nA shared goal still left room for individual judgment. `,
-  ` Different choices could support the same responsible purpose.\n\nAt the end, the group returned to the central lesson of Unit ${plan.unit}. `,
-  ` This conclusion gave the project value beyond its immediate setting.`
+  `When ${s.person} began to examine ${s.challenge}, several easy answers were offered in ${s.setting}. One person blamed a lack of information, while another claimed that nothing could change until everyone agreed. ${s.person} wrote these claims down and compared them with what people had actually said and done. `,
+  ` A closer look showed that the situation involved habits, expectations and practical limits. The class also considered a related detail from the textbook: ${fact(0)} That detail did not supply a ready-made solution, but it revealed why the first explanation had overlooked an important part of the problem.\n\nThe next task was to turn discussion into action. `,
+  ` Because the step was concrete, participants knew what to do, when to do it and what result to watch for. They agreed to avoid describing the attempt as a success merely because it sounded reasonable. Instead, they would examine whether the action changed the difficulty named at the beginning.\n\nEarly results were mixed. `,
+  ` The record made later adjustments more accurate and prevented one good day from being mistaken for permanent success. In particular, ${s.evidence}. The class compared this result with another unit fact: ${fact(1)} The comparison helped them distinguish a temporary reaction from evidence of a developing pattern.\n\nA shared goal still left room for individual judgment. `,
+  ` Different choices could support the same responsible purpose. People who faced different limits adjusted the timing and method, then explained why those changes still served the original aim. This flexibility mattered because ${fact(2)} No participant was allowed to use “different circumstances” as an excuse for abandoning the evidence.\n\nAt the end, the group returned to the central lesson of Unit ${plan.unit}. `,
+  ` ${cap(s.outcome)}. The experience showed that ${s.insight} It also clarified the limits of the result: one local project could guide later decisions, but it could not remove the need to observe each new situation. In this way, reflection led to a defensible action and the action produced material for deeper reflection.`
  ];
  const orders=[[0,1,2,3,4],[1,0,3,2,4],[0,2,1,3,4],[1,2,0,3,4]][v];
  // Reorder the six displayed choices while retaining a distinct answer pattern for each paper.
@@ -92,16 +106,16 @@ function wordFill(plan:UnitPlan,s:Scenario,v:number){
  const options=[...used,nouns[4],adjectives[2]];
  const passageParts=[
   `The class used ${s.title.toLowerCase()} to `,
-  ` an important idea from Unit ${plan.unit}. Their first `,
-  ` was to look beyond the most obvious explanation. Although the situation seemed `,
+  ` an important idea from Unit ${plan.unit}. The case began in ${s.setting}, where ${s.challenge}. Their first `,
+  ` was to separate what people had observed from what they merely expected. Although the situation seemed `,
   `, the students learned that careful questions could `,
-  ` a hidden pattern.\n\nThey collected `,
-  ` from ${s.setting} and used it to `,
-  ` their original plan. A more `,
-  ` discussion followed because every claim had to match the record. The main `,
-  ` was not a perfect solution but a clearer understanding.\n\nThe students then tried to `,
-  ` the lesson in another context. Their final `,
-  ` explained how ${s.insight}.`
+  ` a hidden pattern. They asked when the difficulty occurred, who noticed it first and which earlier response had failed.\n\nThey collected `,
+  ` from interviews, written records and the result of the first attempt. The class used it to `,
+  ` their original plan rather than defend an attractive idea. A more `,
+  ` discussion followed because every claim had to match the record. ${cap(s.action)}. The main `,
+  ` was not a perfect solution but a clearer understanding of why the action worked in some conditions and needed revision in others.\n\nThe students then tried to `,
+  ` the lesson in another context. They compared the new setting with ${s.setting} before deciding which details could be transferred. Their final `,
+  ` explained the evidence, the limits of the comparison and how ${s.insight}.`
  ];
  return {title:`Words in Context: ${s.title}`,passageParts,options,answers:[0,1,2,3,4,5,6,7,8,9],explanations:[
   `${verbs[0]}在to后用动词原形。`,`${nouns[0]}在形容词first后作名词。`,`${adjectives[0]}在seemed后作表语。`,`${verbs[1]}在could后用动词原形。`,`${nouns[1]}作collect的宾语。`,`${verbs[2]}在to后表示处理原计划。`,`${adjectives[1]}修饰discussion。`,`${nouns[2]}作句子主语。`,`${verbs[3]}在to后表示迁移运用。`,`${nouns[3]}指最终形成的成果。`
@@ -134,7 +148,7 @@ function essay(plan:UnitPlan,s:Scenario){
 
 export function buildUnitPapers(plan:UnitPlan):Paper[]{
  return plan.scenarios.map((s,v)=>{
-  const j=judgment(plan,s,v),r=reading(plan,s,v),m=matching(plan,s);
+  const j=judgment(plan,s,v),r=reading(plan,s,v),m=matching(plan,s,v);
   const inventory=coverageFor(plan.unit),source=v%2===0?"Text A":"Text B";
   const sourceFacts=v%2===0?inventory.textAFacts:inventory.textBFacts;
   const textFacts=sourceFacts.filter((_,i)=>i%2===Math.floor(v/2));
