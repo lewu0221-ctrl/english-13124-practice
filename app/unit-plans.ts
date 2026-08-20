@@ -1,4 +1,5 @@
 import {buildUnitPapers,type UnitPlan} from "./paper-generator";
+import {reviseUnit2Papers} from "./unit2-revised";
 
 export const unitPlans:UnitPlan[]=[
 {
@@ -135,4 +136,5 @@ export const unitPlans:UnitPlan[]=[
 }
 ];
 
-export const generatedPapers=unitPlans.flatMap(buildUnitPapers);
+const generated=unitPlans.flatMap(buildUnitPapers);
+export const generatedPapers=[...reviseUnit2Papers(generated.filter(p=>p.unit===2)),...generated.filter(p=>p.unit!==2)];
