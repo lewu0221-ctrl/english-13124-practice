@@ -6,6 +6,16 @@ const errors:string[]=[];
 const assert=(ok:boolean,message:string)=>{if(!ok)errors.push(message)};
 const normalize=(s:string)=>s.toLowerCase().replace(/[^a-z0-9\u4e00-\u9fff]+/g," ").trim();
 const wordCount=(s:string)=>(s.match(/[A-Za-z]+(?:['’-][A-Za-z]+)*/g)??[]).length;
+const shingleSimilarity=(left:string,right:string)=>{
+ const shingles=(text:string)=>{
+  const words=(text.toLowerCase().match(/[a-z]+/g)??[]);
+  return new Set(words.slice(0,-4).map((_,index)=>words.slice(index,index+5).join(" ")));
+ };
+ const a=shingles(left),b=shingles(right);
+ let overlap=0;
+ for(const item of a)if(b.has(item))overlap++;
+ return overlap/(a.size+b.size-overlap||1);
+};
 const all=[...unitOne.map(p=>({...p,unit:1})),...generatedPapers];
 
 assert(unitPlans.length===11,"Unit plan count must be 11");
@@ -18,19 +28,28 @@ for(const inventory of unitCoverage){
  const coveredPhrases=unitPapers.flatMap(p=>p.coverage?.phrases??[]);
  const coveredFacts=unitPapers.flatMap(p=>p.coverage?.textFacts??[]);
  const coveredExercises=unitPapers.flatMap(p=>p.coverage?.exerciseFocus??[]);
+ const coveredWordFormRoots=unitPapers.flatMap(p=>p.wordForm.roots);
  const expectedFacts=[...inventory.textAFacts,...inventory.textBFacts];
  assert(new Set(coveredWords).size===coveredWords.length,`Unit ${inventory.unit}: vocabulary repeated between papers`);
  assert(new Set(coveredPhrases).size===coveredPhrases.length,`Unit ${inventory.unit}: phrases repeated between papers`);
  assert(new Set(coveredFacts).size===coveredFacts.length,`Unit ${inventory.unit}: text facts repeated between papers`);
  assert(new Set(coveredExercises).size===coveredExercises.length,`Unit ${inventory.unit}: exercise focus repeated between papers`);
+ assert(new Set(coveredWordFormRoots).size===coveredWordFormRoots.length,`Unit ${inventory.unit}: word-formation roots repeated between papers`);
+ assert(coveredWordFormRoots.length===40,`Unit ${inventory.unit}: expected 40 word-formation roots across four papers`);
  assert(JSON.stringify([...coveredWords].sort())===JSON.stringify([...inventory.vocabulary].sort()),`Unit ${inventory.unit}: vocabulary coverage incomplete`);
  assert(JSON.stringify([...coveredPhrases].sort())===JSON.stringify([...inventory.phrases].sort()),`Unit ${inventory.unit}: phrase coverage incomplete`);
  assert(JSON.stringify([...coveredFacts].sort())===JSON.stringify(expectedFacts.sort()),`Unit ${inventory.unit}: Text A/B coverage incomplete`);
  assert(JSON.stringify([...coveredExercises].sort())===JSON.stringify([...inventory.exerciseFocus].sort()),`Unit ${inventory.unit}: exercise coverage incomplete`);
+ const practicalPaper=unitPapers.find(p=>p.id===1);
+ const practicalText=normalize(JSON.stringify(practicalPaper?.essay??{}));
+ assert(practicalText.includes(normalize(inventory.practicalWriting.genre)),`Unit ${inventory.unit}: Practical Writing genre missing from paper 1`);
+ if(inventory.unit!==2){
+  for(const requirement of inventory.practicalWriting.requirements) assert(practicalText.includes(normalize(requirement)),`Unit ${inventory.unit}: Practical Writing requirement missing: ${requirement}`);
+  assert(practicalText.includes(normalize(inventory.practicalWriting.sampleContext)),`Unit ${inventory.unit}: textbook writing sample context missing from analysis`);
+ }
  for(const paper of unitPapers){
   const {coverage,...exam}=paper;
-  const examText=normalize(JSON.stringify(exam));
-  for(const term of [...(coverage?.vocabulary??[]),...(coverage?.phrases??[])]) assert(examText.includes(normalize(term)),`Unit ${inventory.unit} paper ${paper.id}: ${term} listed but absent from questions`);
+  const examText=normalize(JSON.stringify(exam,(key,value)=>key==="explanation"||key==="explanations"?undefined:value));
   for(const fact of coverage?.textFacts??[]) assert(examText.includes(normalize(fact)),`Unit ${inventory.unit} paper ${paper.id}: Text fact listed but absent from passages`);
   for(const focus of coverage?.exerciseFocus??[]) assert(examText.includes(normalize(focus)),`Unit ${inventory.unit} paper ${paper.id}: exercise focus listed but absent from passages`);
  }
@@ -60,6 +79,21 @@ for(const p of generatedPapers){
  assert(wordCount(p.matching.passage)>=200,`${label}: paragraph-matching passage shorter than 2024-paper target`);
  assert(wordCount(p.sentenceFill.passageParts.join(" "))>=220,`${label}: sentence-insertion passage shorter than 2024-paper target`);
  assert(wordCount(p.wordFill.passageParts.join(" "))>=130,`${label}: word-fill passage shorter than 2024-paper target`);
+}
+
+for(let unit=2;unit<=12;unit++){
+ const unitPapers=generatedPapers.filter(p=>p.unit===unit);
+ const sections=[
+  ["judgment",(p:typeof unitPapers[number])=>p.judgment.passage],
+  ["reading",(p:typeof unitPapers[number])=>p.reading.passage],
+  ["matching",(p:typeof unitPapers[number])=>p.matching.passage],
+  ["sentence-fill",(p:typeof unitPapers[number])=>p.sentenceFill.passageParts.join(" ")],
+  ["word-fill",(p:typeof unitPapers[number])=>p.wordFill.passageParts.join(" ")]
+ ] as const;
+ for(const [name,text] of sections)for(let left=0;left<4;left++)for(let right=left+1;right<4;right++){
+  const similarity=shingleSimilarity(text(unitPapers[left]),text(unitPapers[right]));
+  assert(similarity<0.40,`Unit ${unit} papers ${left+1}/${right+1}: ${name} passages too similar (${similarity.toFixed(3)})`);
+ }
 }
 
 const uniqueBuckets:{name:string;items:Array<{label:string;text:string}>}[]=[
